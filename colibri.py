@@ -168,6 +168,8 @@ def solver_cvxpy(m,A,b,C,d,G,h):
     prob.solve()
     print("x_cvxpy = {}".format(xc.value))
 
+
+
 m = 5
 A,b,C,d,l,u = generate(m)
 solver_lagrange_simple_b(m,A,b,C,d,l,u)
