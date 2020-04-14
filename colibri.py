@@ -6,8 +6,49 @@ import cvxpy as cp
 import sympy as sym
 import copy
 import tqdm
+import sys
+import json
 
 np.set_printoptions(precision=3, linewidth=180)
+
+def load_config(config_file, keys="AbCdlu"):
+    """
+    Parse le fichier de config et retourne les valeurs sérialiser
+    Echoue ( et renvoie None) si le fichier n'existe pas, ne contient pas du json valide, ou qu'il manque une ou plusieurs des valeurs.
+    """
+
+    try:
+        fd = open(config_file, "r")
+    except FileNotFoundError:
+        print(f"Erreur, le fichier {config_file} n'as pas peu être ouvert en lecture.")
+        return None
+    try:
+        json_data = json.load(fd)
+    except json.decoder.JSONDecodeError as e:
+        print(f"Erreur, le fichier {config_file} contient du JSON invalide : {e}")
+        return None
+
+    values = []
+    err = False
+
+    for key in keys:
+        if not key in json_data:
+
+            print(f"Erreur, le fichier de config ne contient pas {key}.")
+
+            # On ne return pas ici, cela permet d'affiché la totalité des clés manquantes
+            err = True
+        else:
+
+            val = np.array(json_data[key])
+            values.append(val)
+
+    # On échoue si une ou plusieurs clés sont manquantes
+    if err:
+        return None
+
+    return values
+
 
 def generate(m, borne='bornes'):
     """
@@ -170,7 +211,17 @@ def solver_cvxpy(m, A, b, C, d, G, h):
     print("x_cvxpy = {}".format(xc.value))
 
 
+# Todo: un truc plus propre ici
 
-m = 5
-A, b, C, d, l, u = generate(m)
-solver_lagrange_simple_b(m, A, b, C, d, l, u)
+if len(sys.argv) >= 2:
+    config = sys.argv[1]
+    vals = load_config(config)
+    if vals:
+        A, b, C, d, l, u = vals
+        print("Okay")
+        print(A, b, C, d, l, u)
+
+else:
+    m = 5
+    A, b, C, d, l, u = generate(m)
+    solver_lagrange_simple_b(m, A, b, C, d, l, u)
