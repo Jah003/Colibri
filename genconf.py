@@ -6,7 +6,7 @@ import json
 parser = argparse.ArgumentParser()
 
 parser.add_argument("outfile", type=str, help="Fichier d'output")
-parser.add_argument("dimension", type=int, help="Dimension du problème à génerer")
+parser.add_argument("dimension", type=int, help="Dimension du problème à génerer (= nombre de variables)")
 
 parser.add_argument("-b", "--bornes", action="store_true")
 args = parser.parse_args()
@@ -20,5 +20,5 @@ data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)), "C" 
 
 with open(args.outfile, "w") as fd:
     fd.write(json.dumps(data))
-print("Problème générer avec succès.")
+print("Problème généré avec succès.")
 
