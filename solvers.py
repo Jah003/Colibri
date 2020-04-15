@@ -12,7 +12,7 @@ import argparse
 
 np.set_printoptions(precision=3, linewidth=180)
 
-def load_config(config_file, keys="AbCdlu"):
+def load_config(config_file, keys=['A','b','Cb','C','G','h']):
     """
     Parse le fichier de config et retourne les valeurs sérialiser
     Echoue ( et renvoie None) si le fichier n'existe pas, ne contient pas du json valide, ou qu'il manque une ou plusieurs des valeurs.
@@ -68,7 +68,6 @@ def generate(m, borne='bornes'):
 
     Cb = np.diag(vb) # matrice de covariance de b
     b_soumis = b + np.sqrt(vb) * np.random.randn(n) # b donné, une réalisation de b
-    print(x)
 
     if borne == 'bornes':
         l = x - np.ones(m) * 50
@@ -214,7 +213,5 @@ def solver_cvxpy(m, A, b, C, d, G, h):
 
 def solver_partitions(m, A, b, C, d, G, h):
     pass
-
-# Todo: un truc plus propre ici
 
 
