@@ -19,8 +19,13 @@ Après avoir installer les dépendances, il suffit de `git clone https://github.
 
 ## Utilisation
 
-todo
+Génération d'une configuration aléatoire avec `genconf.py`.
 
+Il faut lui spécifier une fichier de sortie, et la dimension du problème.
 
-##
+par exemple :
+
+`python genconf.py test.json 5`
+
+## Lancement du solver
 
