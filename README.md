@@ -4,7 +4,7 @@
 
 ### Dépendances
 
-`pip install scipy numpy sympy cvxpy`
+`pip install scipy numpy sympy cvxpy tqdm`
 
 Nous utilisons les librairies suivantes:
 
@@ -20,12 +20,11 @@ Après avoir installer les dépendances, il suffit de `git clone https://github.
 ## Utilisation
 
 Génération d'une configuration aléatoire avec `genconf.py`.
-
 Il faut lui spécifier une fichier de sortie, et la dimension du problème.
 
-par exemple :
-
-`python genconf.py test.json 5`
+Par exemple , `python genconf.py test.json 5`, génére une configuration de dimension 5 et l'écrit dans le fichier `test.json`.
 
 ## Lancement du solver
 
+
+TODO
