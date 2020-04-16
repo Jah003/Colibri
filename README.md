@@ -4,14 +4,17 @@
 
 ### Dépendances
 
+Pour installer les dépendances, il suffit d'utiliser la commande suivante :
+
 `pip install scipy numpy sympy cvxpy tqdm`
 
-Nous utilisons les librairies suivantes:
+Voici les librairies qu'elle va installer:
 
 * [CVXPY](https://www.cvxpy.org/)
 * [Simpy](https://www.sympy.org/en/index.html)
 * [Scipy](https://www.scipy.org/)
 * [Numpy](https://numpy.org/)
+* [TQDM](https://tqdm.github.io/)
 
 ### Logiciel
 
