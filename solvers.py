@@ -12,7 +12,7 @@ import argparse
 
 np.set_printoptions(precision=3, linewidth=180)
 
-def load_config(config_file, keys=['A','b','Cb','C','G','h']):
+def load_config(config_file, keys=['A','b','Cb','C','l','u']):
     """
     Parse le fichier de config et retourne les valeurs sérialiser
     Echoue ( et renvoie None) si le fichier n'existe pas, ne contient pas du json valide, ou qu'il manque une ou plusieurs des valeurs.
@@ -72,7 +72,7 @@ def generate(m, borne='bornes'):
     if borne == 'bornes':
         l = x - np.ones(m) * 50
         u = x + np.ones(m) * 50
-        return A, b, C, d, l, u
+        return A, b, Cb, C, d, l, u
     else:
         G = np.vstack((np.identity(m), -np.identity(m)))
         h = G @ x + np.random.randn(2 * m)
@@ -166,7 +166,9 @@ def solver_lagrange_simple_b(m, A, b, C, d, l, u):
     u1 = x_lagrange[:m] <= u
     if False in l1 or False in u1:
         print("Les bornes ne sont pas entièrement respectées")
+
     print(x_lagrange[:m])
+    return x_lagrange[:m]
 
 def solver_lagrange_simple_i(m, A, b, C, d, G, h):
     xl = sym.symbols(list('x{} '.format(i) for i in range(m)))
@@ -192,9 +194,12 @@ def solver_lagrange_simple_i(m, A, b, C, d, G, h):
 
     if False in test:
         print("Les bornes ne sont pas entièrement respectées")
+
     print(x_lagrange[:m])
+    return x_lagrange[:m]
 
 def LuToGh(l, u):
+    m = len(l)
     G = np.vstack((np.identity(m), -np.identity(m)))
     h = np.vstack((u, -l))
     return G,h
@@ -211,7 +216,7 @@ def solver_cvxpy(m, A, b, C, d, G, h):
     print("x_cvxpy = {}".format(xc.value))
 
 
-def solver_partitions(m, A, b, C, d, G, h):
-    pass
+def solver_partitions(m, A, b, C, d, l, u, npart):
+    print("TODO")
 
 
