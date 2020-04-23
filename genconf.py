@@ -14,5 +14,6 @@ data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)), "C" 
 
 with open(args.outfile, "w") as fd:
     fd.write(json.dumps(data))
+
 print("Problème généré avec succès.")
 

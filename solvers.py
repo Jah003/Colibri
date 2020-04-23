@@ -216,7 +216,49 @@ def solver_cvxpy(m, A, b, C, d, G, h):
     print("x_cvxpy = {}".format(xc.value))
 
 
+
+def creation_partitions(ls, us, npart, dim):
+    """
+    Cette fonction va nous servir à créer nos différentes partitions composées de m "bebés" intervalles,
+    Pour créer toutes les partitions, on crée toutes les combinaisons possibles de "bébés" intervalles
+    """
+
+    assert(dim == len(ls) == len(us))
+
+    possible_couples = []
+
+    for m in range(dim):
+        possible_couples.append([(li,ui) for li,ui in create(ls[m],us[m],npart)])
+
+    ls_us = itertools.product(*possible_couples) #On produit les différentes combinaisons et on les retourne
+
+    return [list(map(list, zip(*x))) for x in ls_us]
+
+def resolution_base(A,b,C,d,G,h): # Cette fonction resout le probleme sans utiliser la partition
+
+    xes= []
+
+    for b in tqdm.tqdm(bs.T):
+
+        # definition du problème
+        xe = cp.Variable(m)
+
+        objective = cp.Minimize(cp.sum_squares((A @ xe) - b))
+        constraints = [(C @ xe) == d, G @ xe <= h]
+        prob = cp.Problem(objective, constraints)
+        # resolution
+        try :
+            prob.solve()
+        except Exception as e :
+            print(e)
+        if xe.value is None:
+            continue
+        xes.append(xe.value)
+
+    # print("Dcp ? {}".format(prob.is_dcp()))
+
+    return xes
+
 def solver_partitions(m, A, b, C, d, l, u, npart):
-    print("TODO")
 
 
