@@ -259,6 +259,65 @@ def resolution_base(A,b,C,d,G,h): # Cette fonction resout le probleme sans utili
 
     return xes
 
-def solver_partitions(m, A, b, C, d, l, u, npart):
+def solver_partitions(m, A, b, C, d, G, h, n_part, affichage=False, affichage_no_sol=False):
+    """
+    Fonction principale qui va résoudre le système pour chaque b et chaque partitions
+    """
+
+    u = np.array(h[:m])
+    lh = np.array(h[-m:])
+    hp = []
+
+    if (affichage):
+
+        for li,ui in creation_partitions(lh, u, n_part,m):
+            li = np.array(li)
+            ui = np.array(ui)
+            print("l={},u={}".format(-li,ui))
 
 
+    min_local = []
+
+    for li,ui in creation_partitions(lh,u,n_part,m):
+
+        li = np.array(li)
+        ui = np.array(ui)
+
+        hp = np.hstack([ui,li])
+        xe = cp.Variable(m)
+        obj = cp.Minimize(cp.sum_squares( (A @ xe) - bi) )
+        cstr = [(C @ xe) == d, G @ xe <= hp]
+        prob = cp.Problem(obj, cstr)
+
+        try :
+            prob.solve()
+        except Exception as e :
+            print(e)
+
+        # Pas de solution
+        if xe.value is None:
+            if (affichage_no_sol) :
+                print("Pas de solution :( pour {} <= x <= {}".format(-li,ui))
+            continue
+
+
+        # Stock les solutions de chaque partitions
+        min_local.append((xe.value, np.linalg.norm( (A @ xe.value) - bi)**2 ))
+
+    # Récupère la solution dont la norme de A@xsol-b^2 est la plus petite
+    return min(min_local, key=lambda couple: couple[1]) )
+
+def solver_mean_partitions(m, A, bs, C, d, G, h, n_part):
+
+    """
+    Pour chaque b, résout le problème avec le solver par partition
+    et renvoie la moyenne des xe obtenues
+    """
+
+    xes = []
+    for b in bs:
+    xe = solve_partition(m, A, b, C, d, G, h, n_part)
+        xes.append(xe)
+
+    x_opt1 = xes1.T.mean(axis=1)
+    return x_opt1, xes1
