@@ -20,6 +20,11 @@ Voici les librairies qu'elle va installer:
 
 Après avoir installé les dépendances, il suffit de `git clone https://github.com/Antoxyde/Colibri`.
 
+## Objectif
+
+Le programme a pour but de résoudre un système d'optimisation des moindres carrés avec contraintes linéaires, bornes et calcul d'incertitude. La dimension du problème est la dimension m du vecteur x solution de ce problème. Le problème est défini ainsi (les notations pourront être ré-utilisées) : 
+min ||A x - b ||^2 tq C x = d et l <= x <= u
+
 ## Utilisation
 
 Le programme est composé de 2 script executables, `genconf.py` et `colibri.py`.
