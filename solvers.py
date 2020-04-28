@@ -78,16 +78,16 @@ def generate(m, borne='bornes',precision=False,ech=0):
         l = x - np.ones(m) * 50
         u = x + np.ones(m) * 50
         if ech>0 :
-            return A, b, Cb, C, d, l, u, bs
+            return A, b, Cb, C, d, l, u, x, bs
         else:
-            return A, b, Cb, C, d, l, u
+            return A, b, Cb, C, d, l, u, x
     else:
         G = np.vstack((np.identity(m), -np.identity(m)))
         h = G @ x + np.random.randn(2 * m)
         if ech>0 :
-            return A, b_soumis, Cb, C, d, G, h, bs
+            return A, b_soumis, Cb, C, d, G, h, x, bs
         else:
-            return A, b_soumis, Cb, C, d, G, h
+            return A, b_soumis, Cb, C, d, G, h, x
 
 def test_sous_determine(m, A, C):
     rank = np.linalg.matrix_rank(A) + np.linalg.matrix_rank(C)
