@@ -9,6 +9,7 @@ import tqdm
 import sys
 import json
 import argparse
+from random import randint
 
 np.set_printoptions(precision=3, linewidth=180)
 
@@ -51,32 +52,42 @@ def load_config(config_file, keys=['A','b','Cb','C','l','u']):
     return values
 
 
-def generate(m, borne='bornes'):
+def generate(m, borne='bornes',precision=False,ech=0):
     """
-    On génère les matrice correspondant à un pb à m variables
-    systeme = 0 --> n = m -k , systeme = 1 n = m//2 -1
+    m la dimension de x
+    nombre de lignes de A et C détermine aleatoirement
+    precision : si F retourne un echantillon de b, si T retrouve b_bar
+    ech : si > 0 retourne le tableau bs pour iteration
     """
 
-    n = m - 2
+    n = randint(1,m)
     A = np.random.randn(n, m)
-    C = np.random.randn(n, m)
+    C = np.random.randn((m-n)*randint(1,m), m)
     x = np.random.randn(m)
     b = A @ x
     d = C @ x
-    vb = np.array([0.1, 0.05, 0.06])**2 # vecteur des variances de chaque terme du vecteur b
-    # vb = (np.random.sample(n)/10)**2
+    vb = (np.random.sample(n/5)**2 # vecteur des variances de chaque terme du vecteur b
 
     Cb = np.diag(vb) # matrice de covariance de b
     b_soumis = b + np.sqrt(vb) * np.random.randn(n) # b donné, une réalisation de b
-
+    if precision==True:
+        b_soumis = b
+    if ech>0:
+        bs = b[:, None]+np.sqrt(vb)[:, None]*np.random.randn(n, ech)
     if borne == 'bornes':
         l = x - np.ones(m) * 50
         u = x + np.ones(m) * 50
-        return A, b, Cb, C, d, l, u
+        if ech>0 :
+            return A, b, Cb, C, d, l, u, bs
+        else:
+            return A, b, Cb, C, d, l, u
     else:
         G = np.vstack((np.identity(m), -np.identity(m)))
         h = G @ x + np.random.randn(2 * m)
-    return A, b_soumis, Cb, C, d, G, h
+        if ech>0 :
+            return A, b_soumis, Cb, C, d, G, h, bs
+        else:
+            return A, b_soumis, Cb, C, d, G, h
 
 def test_sous_determine(m, A, C):
     rank = np.linalg.matrix_rank(A) + np.linalg.matrix_rank(C)
@@ -215,6 +226,90 @@ def solver_cvxpy(m, A, b, C, d, G, h):
     prob.solve()
     print("x_cvxpy = {}".format(xc.value))
 
+def test_diag(a):
+  """
+  utilise pour construire la matrice var-cov
+  T si tous les elements de la diag de a sont entre 0 et 1
+  """
+  for i in range(a.shape[0]):
+    if a[i,i] <= 0 or a[i,i]>=1:
+      return False
+  return True
+
+def simplifie_sd(m,C,d,l,u,k,x,sd):
+  """
+  reduit l ecart-type sd pour correspondre au contrainte Cx=d et l<x<u
+  x est une solution trouvee
+  k est la precision, vaut 1,2, ou 3 (du + precis ou - precis)
+  """
+  xl = sym.symbols(list('x{} '.format(i) for i in range(m)))
+  name = {}
+  for i in range(m):
+    name[xl[i]] = i
+  x_sol = sym.solve(C@xl - d, xl)
+
+  rg = np.linalg.matrix_rank(C)
+
+  sub1 = []
+  sub2 = []
+  for i in range(rg,m):
+    if x[i]-k*sd[i] < l[i]:
+      if x[i]+k*sd[i] > u[i]:
+        sd[i] = min(np.abs((l[i]-x[i])/k),np.abs((u[i]-x[i])/k))
+      else :
+        sd[i] = np.abs((l[i]-x[i])/k)
+    elif x[i]+k*sd[i] > u[i]:
+      sd[i] = np.abs((u[i]-x[i])/k)
+    sub1.append([xl[i],x[i]- k*sd[i]])
+    sub2.append([xl[i],x[i]+ k*sd[i]])
+
+  for key,v in x_sol.items():
+    #print(x[name[key]])
+    i = name[key]
+    a = v.subs(sub1)
+    b = v.subs(sub2)
+
+    if a < l[i]:
+      if b > u[i]:
+        sd[i] = min(np.abs((l[i]-a)/k),np.abs((u[i]-b)/k))
+      else :
+        sd[i] = np.abs((l[i]-a)/k)
+    elif b > u[i]:
+      sd[j] = np.abs((u[i]-b)/k)
+
+  return sd**2
+
+
+def make_sd(m,A,Cb,C,d,l,u,k,x):
+  """
+  calcule sd de x pour Ax=b a partir de Cb
+  puis retourne le resultat simplifie par methode precedente
+  """
+  pinvA = np.linalg.pinv(A)
+  pinvAt = np.linalg.pinv(A.T)
+  prod = pinvA@Cb@pinvAt
+  sommeA = np.eye(m) - pinvA@A
+  kxa = -1*np.eye(m,m)
+
+  while test_diag(kxa)==False :
+    kxa = prod + sommeA@np.random.randn(m,m)
+  sq = []
+  for i in range(m):
+    sq.append(np.sqrt(kxa[i,i]))
+  sq = np.array(sq)
+
+  return simplifie_sd(m,C,d,l,u,k,x,sq)
+
+def compare_sd(A,B):
+  res = []
+  if A.shape==B.shape:
+    for i in range(A.shape[0]):
+      res.append(np.abs(np.sqrt(A[i,i])-np.sqrt(B[i,i])))
+    return res
+  else:
+    for i in range(A.shape[0]):
+      res.append(np.abs(np.sqrt(A[i,i])-np.sqrt(B[i])))
+    return res
 
 
 def creation_partitions(ls, us, npart, dim):
