@@ -13,10 +13,10 @@ from random import randint
 
 np.set_printoptions(precision=3, linewidth=180)
 
-def load_config(config_file, keys=['A','b','Cb','C','l','u']):
+def load_config(config_file):
     """
     Parse le fichier de config et retourne les valeurs sérialiser
-    Echoue ( et renvoie None) si le fichier n'existe pas, ne contient pas du json valide, ou qu'il manque une ou plusieurs des valeurs.
+    Echoue ( et renvoie None) si le fichier n'existe pas, ne contient pas du json valide.
     """
 
     try:
@@ -30,27 +30,7 @@ def load_config(config_file, keys=['A','b','Cb','C','l','u']):
         print(f"Erreur, le fichier {config_file} contient du JSON invalide : {e}")
         return None
 
-    values = []
-    err = False
-
-    for key in keys:
-        if not key in json_data:
-
-            print(f"Erreur, le fichier de config ne contient pas {key}.")
-
-            # On ne return pas ici, cela permet d'affiché la totalité des clés manquantes
-            err = True
-        else:
-
-            val = np.array(json_data[key])
-            values.append(val)
-
-    # On échoue si une ou plusieurs clés sont manquantes
-    if err:
-        return None
-
-    return values
-
+    return json_data
 
 def generate(m, borne='bornes',precision=False,ech=0):
     """
@@ -66,13 +46,13 @@ def generate(m, borne='bornes',precision=False,ech=0):
     x = np.random.randn(m)
     b = A @ x
     d = C @ x
-    vb = (np.random.sample(n/5)**2 # vecteur des variances de chaque terme du vecteur b
+    vb = np.random.sample(n/5)**2 # vecteur des variances de chaque terme du vecteur b
 
     Cb = np.diag(vb) # matrice de covariance de b
     b_soumis = b + np.sqrt(vb) * np.random.randn(n) # b donné, une réalisation de b
     if precision==True:
         b_soumis = b
-    
+
     if ech>0:
         bs = b_soumis[:, None]+np.sqrt(vb)[:, None]*np.random.randn(n, ech)
     if borne == 'bornes':
@@ -401,7 +381,7 @@ def solver_partitions(m, A, b, C, d, G, h, n_part, affichage=False, affichage_no
         min_local.append((xe.value, np.linalg.norm( (A @ xe.value) - bi)**2 ))
 
     # Récupère la solution dont la norme de A@xsol-b^2 est la plus petite
-    return min(min_local, key=lambda couple: couple[1]) )
+    return min(min_local, key=lambda couple: couple[1])
 
 def solver_mean_partitions(m, A, bs, C, d, G, h, n_part):
 
@@ -412,7 +392,7 @@ def solver_mean_partitions(m, A, bs, C, d, G, h, n_part):
 
     xes = []
     for b in bs:
-    xe = solve_partition(m, A, b, C, d, G, h, n_part)
+        xe = solve_partition(m, A, b, C, d, G, h, n_part)
         xes.append(xe)
 
     x_opt1 = xes1.T.mean(axis=1)
