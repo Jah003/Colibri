@@ -7,10 +7,39 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("outfile", type=str, help="Fichier d'output")
 parser.add_argument("dimension", type=int, help="Dimension du problème à génerer (= nombre de variables)")
+parser.add_argument("-i","--inequality", action="store_true",help="use generalization Gx <= h")
+parser.add_argument("-p","--precision", action="store_true",help="use b without incertitude")
+parser.add_argument("-s","--sample",type=int,help="n a given number, return bs a n-sample of b")
 args = parser.parse_args()
 
-A, b, Cb, C, d, l, u = generate(args.dimension, borne="bornes")
-data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)), "C" : list(map(list, C)), "d": list(d), "l" : list(l), "u": list(u)}
+#les arguments par defaut de 
+borne='bornes'
+precision=False
+ech=0
+
+if args.inequality:
+  borne='inq'
+if args.precision:
+  precision = True
+if args.sample!=None:
+  ech = args.sample
+
+if args.sample!=None and args.inequality:
+  A, b, Cb, C, d, G, h, x, bs = generate(args.dimension, borne,precision,ech)
+  data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)),
+          "C" : list(map(list, C)), "d": list(d), "G" : list(G), "G": list(h), "x" : list(x),"bs" : list(map(list,bs))}
+elif args.sample != None:
+  A, b, Cb, C, d, l, u, x, bs = generate(args.dimension, borne,precision,ech)
+  data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)),
+          "C" : list(map(list, C)), "d": list(d), "l" : list(l), "u": list(u), "x" : list(x),"bs" : list(map(list,bs))}
+elif args.inequality:
+  A, b, Cb, C, d, G, h, x = generate(args.dimension, borne,precision,ech)
+  data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)),
+          "C" : list(map(list, C)), "d": list(d), "G" : list(G), "G": list(h), "x" : list(x)}
+else:
+  A, b, Cb, C, d, l, u, x=generate(args.dimension, borne,precision,ech)
+  data = {"A" : list(map(list, A)), "b" : list(b), "Cb": list(map(list, Cb)),
+          "C" : list(map(list, C)), "d": list(d), "l" : list(l), "u": list(u), "x" : list(x)}
 
 with open(args.outfile, "w") as fd:
     fd.write(json.dumps(data))
