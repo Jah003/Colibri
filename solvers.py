@@ -72,8 +72,9 @@ def generate(m, borne='bornes',precision=False,ech=0):
     b_soumis = b + np.sqrt(vb) * np.random.randn(n) # b donné, une réalisation de b
     if precision==True:
         b_soumis = b
+    
     if ech>0:
-        bs = b[:, None]+np.sqrt(vb)[:, None]*np.random.randn(n, ech)
+        bs = b_soumis[:, None]+np.sqrt(vb)[:, None]*np.random.randn(n, ech)
     if borne == 'bornes':
         l = x - np.ones(m) * 50
         u = x + np.ones(m) * 50
