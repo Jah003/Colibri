@@ -1,4 +1,4 @@
-iport argparse
+import argparse
 from solvers import *
 
 parser = argparse.ArgumentParser()
